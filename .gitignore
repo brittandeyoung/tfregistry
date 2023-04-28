@@ -19,3 +19,11 @@
 
 # Go workspace file
 go.work
+
+# Build artifacts
+build/
+iac/build/
+
+# Terraform 
+iac/.terraform/
+iac/.terraform.lock.hcl
