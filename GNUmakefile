@@ -6,6 +6,9 @@ TYPE ?= module
 
 default: build
 
+test:
+	$(GO_VER) test ./...
+
 build: 
 	for type in $(TYPE) ; do \
 		for action in $(SRCDIR)/$$type/* ; do \
