@@ -9,15 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func (m *Module) Create(ctx context.Context, ddb dynamodb.Client, table string) (*Module, error) {
+func (m *Namespace) Create(ctx context.Context, ddb dynamodb.Client, table string) (*Namespace, error) {
 	err := ValidateRequiredFields(m)
 
 	if err != nil {
 		return nil, err
 	}
 
-	m.Id = FlattenId(m.Namespace, m.Name, m.Provider)
-	m.SortKey = FlattenSortKey(m.Namespace, m.Provider, m.Name)
+	m.Id = m.Name
+	m.SortKey = m.Name
 	m.ResourceType = DynamoDbType
 
 	item, err := attributevalue.MarshalMap(m)
@@ -44,7 +44,8 @@ func (m *Module) Create(ctx context.Context, ddb dynamodb.Client, table string) 
 		return nil, err
 	}
 
-	err = attributevalue.UnmarshalMap(res.Attributes, &item)
+	err = attributevalue.UnmarshalMap(res.Attributes, m)
+
 	if err != nil {
 		return nil, err
 	}

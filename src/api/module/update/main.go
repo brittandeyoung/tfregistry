@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/brittandeyoung/tfregistry/src/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 )
 
 var ddb dynamodb.Client

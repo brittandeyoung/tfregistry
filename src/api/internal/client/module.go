@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/brittandeyoung/tfregistry/src/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 )
 
 func (c *Client) CreateModule(item odm.Module) (*odm.Module, error) {

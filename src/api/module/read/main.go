@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/brittandeyoung/tfregistry/src/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 )
 
 var ddb dynamodb.Client
@@ -29,27 +29,45 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var module odm.Module
-	json.Unmarshal([]byte(req.Body), &module)
-
-	item, err := module.Create(ctx, ddb, table)
-
-	if odm.ConditionalCheckFailedException(err) {
-		return create.ServerErrorConflict(err)
+	namespace, ok := req.PathParameters["namespace"]
+	if !ok {
+		return create.ClientError(http.StatusBadRequest)
 	}
+
+	provider, ok := req.PathParameters["provider"]
+	if !ok {
+		return create.ClientError(http.StatusBadRequest)
+	}
+
+	name, ok := req.PathParameters["name"]
+	if !ok {
+		return create.ClientError(http.StatusBadRequest)
+	}
+
+	module := odm.Module{
+		Namespace: namespace,
+		Provider:  provider,
+		Name:      name,
+	}
+
+	item, err := module.Read(ctx, ddb, table)
 
 	if err != nil {
 		return create.ServerError(err)
+	}
+
+	if item == nil {
+		return create.ClientError(http.StatusNotFound)
 	}
 
 	json, err := json.Marshal(item)
-
 	if err != nil {
 		return create.ServerError(err)
 	}
+	log.Printf("Successfully fetched item %s", json)
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
+		StatusCode: http.StatusOK,
 		Body:       string(json),
 	}, nil
 }

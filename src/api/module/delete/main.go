@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -11,8 +10,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/brittandeyoung/tfregistry/src/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 )
 
 var ddb dynamodb.Client
@@ -50,25 +49,15 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		Name:      name,
 	}
 
-	item, err := module.Read(ctx, ddb, table)
+	err := module.Delete(ctx, ddb, table)
 
 	if err != nil {
 		return create.ServerError(err)
 	}
-
-	if item == nil {
-		return create.ClientError(http.StatusNotFound)
-	}
-
-	json, err := json.Marshal(item)
-	if err != nil {
-		return create.ServerError(err)
-	}
-	log.Printf("Successfully fetched item %s", json)
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       string(json),
+		StatusCode: http.StatusNoContent,
+		Body:       "",
 	}, nil
 }
 

@@ -3,8 +3,8 @@ package main_test
 import (
 	"testing"
 
-	"github.com/brittandeyoung/tfregistry/src/internal/client"
-	"github.com/brittandeyoung/tfregistry/src/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/client"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 )
 
 func TestModule_create(t *testing.T) {

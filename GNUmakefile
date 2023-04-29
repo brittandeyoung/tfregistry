@@ -1,5 +1,5 @@
 GO_VER ?= go
-SRCDIR ?= src
+SRCDIR ?= src/api
 GOOS ?= linux 
 GOARCH ?= amd64 
 TYPE ?= module
@@ -28,6 +28,9 @@ zip:
 tfyolo: 
 	cd iac; terraform apply --auto-approve; cd ../
 
+tfyodo: 
+	cd iac; terraform destroy -force ; cd ../
+
 deploy: build set-file-time zip tfyolo
 
 set-file-time: 
@@ -39,5 +42,6 @@ set-file-time:
 	build \
 	zip \
 	tfyolo \
+	tfyodo \
 	deploy \
 	set-file-time \

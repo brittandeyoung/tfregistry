@@ -19,10 +19,3 @@ type ModuleKey struct {
 	SortKey      string `json:"sortKey" dynamodbav:"sortKey"`
 	ResourceType string `json:"resourceType" dynamodbav:"resourceType"`
 }
-
-type ModuleUpdate struct {
-	Description  string `json:"description" dynamodbav:"description"`
-	SortKey      string `json:"sortKey" dynamodbav:"sortKey"`
-	Source       string `json:"source" dynamodbav:"source"`
-	ResourceType string `json:"resourceType" dynamodbav:"resourceType"`
-}
