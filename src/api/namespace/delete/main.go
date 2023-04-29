@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/validate"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace/odm"
 )
 
 var ddb dynamodb.Client
@@ -30,35 +28,25 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	namespace, ok := req.PathParameters["namespace"]
+	name, ok := req.PathParameters["namespace"]
 	if !ok {
 		return create.ClientError(http.StatusBadRequest)
 	}
 
-	var module odm.Module
-	module.Namespace = namespace
-
-	json.Unmarshal([]byte(req.Body), &module)
-
-	item, err := module.Create(ctx, ddb, table)
-
-	if validate.ConditionalCheckFailedException(err) {
-		return create.ServerErrorConflict(err)
+	namespace := odm.Namespace{
+		Name:         name,
+		ResourceType: odm.DynamoDbType,
 	}
 
-	if err != nil {
-		return create.ServerError(err)
-	}
-
-	json, err := json.Marshal(item)
+	err := namespace.Delete(ctx, ddb, table)
 
 	if err != nil {
 		return create.ServerError(err)
 	}
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
-		Body:       string(json),
+		StatusCode: http.StatusNoContent,
+		Body:       "",
 	}, nil
 }
 

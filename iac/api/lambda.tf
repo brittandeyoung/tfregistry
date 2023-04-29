@@ -2,13 +2,13 @@ resource "aws_lambda_function" "this" {
   for_each      = var.route_keys
   function_name = format("terraform-registry-%s-%s-%s", var.resource_name, var.stage_name, each.key)
 
-  filename = format("build/src/%s/%s/main.zip", var.resource_name, each.key)
+  filename = format("build/src/api/%s/%s/main.zip", var.resource_name, each.key)
   handler  = "main"
 
   runtime          = "go1.x"
   memory_size      = 1024
   timeout          = 30
-  source_code_hash = filebase64sha256(format("build/src/%s/%s/main.zip", var.resource_name, each.key))
+  source_code_hash = filebase64sha256(format("build/src/api/%s/%s/main.zip", var.resource_name, each.key))
   role             = aws_iam_role.this[each.key].arn
   environment {
     variables = {

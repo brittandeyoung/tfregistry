@@ -29,3 +29,4 @@ iac/.terraform/
 iac/.terraform.lock.hcl
 iac/terraform.tfstate
 iac/terraform.tfstate.backup
+iac/terraform.tfstate.lock.info

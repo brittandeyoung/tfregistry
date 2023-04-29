@@ -2,7 +2,7 @@ GO_VER ?= go
 SRCDIR ?= src/api
 GOOS ?= linux 
 GOARCH ?= amd64 
-TYPE ?= module
+TYPE ?= module namespace
 
 default: build
 
@@ -19,9 +19,9 @@ build:
 zip:
 	startingdirectory=`pwd` ; \
  	for type in $(TYPE) ; do \
-		for action in build/src/$$type/* ; do \
+		for action in build/src/api/$$type/* ; do \
 			mkdir -p ./iac/$$action ; \
-			cd $$action ; zip ../../../../iac/$$action/main.zip main; cd $$startingdirectory ; \
+			cd $$action ; zip ../../../../../iac/$$action/main.zip main; cd $$startingdirectory ; \
         done; \
 	done
 

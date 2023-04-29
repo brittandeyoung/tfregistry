@@ -12,8 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/validate"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace/odm"
 )
 
 var ddb dynamodb.Client
@@ -30,21 +29,18 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	namespace, ok := req.PathParameters["namespace"]
+	name, ok := req.PathParameters["namespace"]
 	if !ok {
 		return create.ClientError(http.StatusBadRequest)
 	}
 
-	var module odm.Module
-	module.Namespace = namespace
+	var namespace odm.Namespace
 
-	json.Unmarshal([]byte(req.Body), &module)
+	json.Unmarshal([]byte(req.Body), &namespace)
 
-	item, err := module.Create(ctx, ddb, table)
+	namespace.Name = name
 
-	if validate.ConditionalCheckFailedException(err) {
-		return create.ServerErrorConflict(err)
-	}
+	item, err := namespace.Update(ctx, ddb, table)
 
 	if err != nil {
 		return create.ServerError(err)
@@ -57,7 +53,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	}
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
+		StatusCode: http.StatusOK,
 		Body:       string(json),
 	}, nil
 }

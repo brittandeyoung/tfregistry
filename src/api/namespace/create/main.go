@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace/odm"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/validate"
 )
 
@@ -30,17 +30,10 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	namespace, ok := req.PathParameters["namespace"]
-	if !ok {
-		return create.ClientError(http.StatusBadRequest)
-	}
+	var namespace odm.Namespace
+	json.Unmarshal([]byte(req.Body), &namespace)
 
-	var module odm.Module
-	module.Namespace = namespace
-
-	json.Unmarshal([]byte(req.Body), &module)
-
-	item, err := module.Create(ctx, ddb, table)
+	item, err := namespace.Create(ctx, ddb, table)
 
 	if validate.ConditionalCheckFailedException(err) {
 		return create.ServerErrorConflict(err)
