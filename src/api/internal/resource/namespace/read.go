@@ -1,4 +1,4 @@
-package odm
+package namespace
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
 )
 
-func (m *Namespace) Read(ctx context.Context, ddb dynamodb.Client, table string) (*Namespace, error) {
-	err := ValidateRequiredFields(m)
+type GetNamespaceInput struct {
+	Pk string `json:"pk" dynamodbav:"pk"`
+	Sk string `json:"sk" dynamodbav:"sk"`
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := m.ExpandPartitionKeyAndSortKey()
+func Read(ctx context.Context, ddb ddb.DynamoGetItemAPI, table string, m GetNamespaceInput) (*Namespace, error) {
+	key, err := attributevalue.MarshalMap(m)
 
 	if err != nil {
 		return nil, err
