@@ -14,7 +14,7 @@ type GetNamespaceInput struct {
 	Sk string `json:"sk" dynamodbav:"sk"`
 }
 
-func Read(ctx context.Context, ddb ddb.DynamoGetItemAPI, table string, m GetNamespaceInput) (*Namespace, error) {
+func Read(ctx context.Context, ddbClient ddb.DynamoGetItemAPI, table string, m GetNamespaceInput) (*Namespace, error) {
 	key, err := attributevalue.MarshalMap(m)
 
 	if err != nil {
@@ -26,7 +26,7 @@ func Read(ctx context.Context, ddb ddb.DynamoGetItemAPI, table string, m GetName
 		Key:       key,
 	}
 
-	result, err := ddb.GetItem(ctx, in)
+	result, err := ddbClient.GetItem(ctx, in)
 
 	if err != nil {
 		return nil, err

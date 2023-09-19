@@ -14,7 +14,7 @@ type DeleteNamespaceInput struct {
 	Sk string `json:"sk" dynamodbav:"sk"`
 }
 
-func Delete(ctx context.Context, ddb ddb.DynamoDeleteItemAPI, table string, m DeleteNamespaceInput) error {
+func Delete(ctx context.Context, ddbClient ddb.DynamoDeleteItemAPI, table string, m DeleteNamespaceInput) error {
 
 	key, err := attributevalue.MarshalMap(m)
 
@@ -27,7 +27,7 @@ func Delete(ctx context.Context, ddb ddb.DynamoDeleteItemAPI, table string, m De
 		Key:       key,
 	}
 
-	_, err = ddb.DeleteItem(ctx, in)
+	_, err = ddbClient.DeleteItem(ctx, in)
 
 	if err != nil {
 		return err

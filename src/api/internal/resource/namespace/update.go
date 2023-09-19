@@ -13,14 +13,14 @@ import (
 )
 
 type UpdateNamespaceInput struct {
-	Pk          string `json:"pk" dynamodbav:"pk"`
-	Sk          string `json:"sk" dynamodbav:"sk"`
-	Description string `json:"description" dynamodbav:"description"`
-	Email       string `json:"email" dynamodbav:"email"`
+	Pk          string  `json:"pk" dynamodbav:"pk"`
+	Sk          string  `json:"sk" dynamodbav:"sk"`
+	Description *string `json:"description" dynamodbav:"description"`
+	Email       string  `json:"email" dynamodbav:"email"`
 }
 
 func Update(ctx context.Context, ddbClient ddb.DynamoUpdateItemAPI, table string, m *UpdateNamespaceInput) (*Namespace, error) {
-	if m.Description == "" && m.Email == "" {
+	if m.Description == nil && m.Email == "" {
 		return nil, errors.New("updating a module requires an updated description or source")
 	}
 
