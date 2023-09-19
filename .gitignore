@@ -30,3 +30,6 @@ iac/.terraform.lock.hcl
 iac/terraform.tfstate
 iac/terraform.tfstate.backup
 iac/terraform.tfstate.lock.info
+
+# Macs are dumb
+.DS_Store

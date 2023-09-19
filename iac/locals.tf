@@ -1,23 +1,62 @@
 locals {
-  api = {
-    module = {
-      create = "POST /modules/{namespace}"
-      delete = "DELETE /modules/{namespace}/{name}/{provider}"
-      list   = "GET /modules/{namespace}"
-      read   = "GET /modules/{namespace}/{name}/{provider}"
-      update = "PATCH /modules/{namespace}/{name}/{provider}"
+  project_name = "terraformRegistry"
+
+  api_action = {
+    namespace_create = {
+      route_key = "POST /namespaces"
+      role_arn  = aws_iam_role.full_access.arn
     }
-    namespace = {
-      create = "POST /namespaces"
-      delete = "DELETE /namespaces/{namespace}/{name}/{provider}"
-      list   = "GET /namespaces/{namespace}"
-      read   = "GET /namespaces/{namespace}/{name}/{provider}"
-      update = "PATCH /namespaces/{namespace}/{name}/{provider}"
+    namespace_read = {
+      route_key = "GET /namespaces/{namespace}"
+      role_arn  = aws_iam_role.full_access.arn
     }
-  }
-  default_tags = {
-    "Name"        = "Terraform Registry API"
-    "Project"     = "tfregistry-api"
-    "Environment" = terraform.workspace
+    namespace_list = {
+      route_key = "GET /namespaces"
+      role_arn  = aws_iam_role.full_access.arn
+    }
+    namespace_update = {
+      route_key = "PATCH /namespaces/{namespace}"
+      role_arn  = aws_iam_role.full_access.arn
+    }
+    namespace_delete = {
+      route_key = "DELETE /namespaces/{namespace}"
+      role_arn  = aws_iam_role.full_access.arn
+    }
+    # module_create = {
+    #   route_key = "POST /modules/{namespace}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # module_read = {
+    #   route_key = "GET /modules/{namespace}/{name}/{provider}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # module_list = {
+    #   route_key = "GET /modules/{namespace}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # module_update = {
+    #   route_key = "PATCH /modules/{namespace}/{name}/{provider}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # module_delete = {
+    #   route_key = "DELETE /modules/{namespace}/{name}/{provider}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # moduleVersion_create = {
+    #   route_key = "POST /modules/{namespace}/{name}/{provider}/versions"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # moduleVersion_read = {
+    #   route_key = "GET /modules/{namespace}/{name}/{provider}/versions/{version}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # moduleVersion_list = {
+    #   route_key = "GET /modules/{namespace}/{name}/{provider}/versions"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
+    # moduleVersion_delete = {
+    #   route_key = "DELETE /modules/{namespace}/{name}/{provider}/versions/{version}"
+    #   role_arn  = aws_iam_role.full_access.arn
+    # }
   }
 }
