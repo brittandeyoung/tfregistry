@@ -6,50 +6,65 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace"
 )
 
-var ddb dynamodb.Client
-var table string
-
-func init() {
-	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ddb = *dynamodb.NewFromConfig(sdkConfig)
-	table = os.Getenv("table_name")
+type deps struct {
+	ddb   ddb.DynamoQueryAPI
+	table string
 }
 
-func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	name, ok := req.PathParameters["namespace"]
-	if !ok {
-		return create.ClientError(http.StatusBadRequest)
+func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if d.ddb == nil {
+		sdkConfig, err := config.LoadDefaultConfig(context.TODO())
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		table := os.Getenv("TABLE_NAME")
+
+		d.ddb = dynamodb.NewFromConfig(sdkConfig)
+		d.table = table
 	}
 
-	namespace := odm.Namespace{
-		Name:         name,
-		ResourceType: odm.DynamoDbType,
+	var startKey *string
+	startKeyString, ok := req.QueryStringParameters["start_key"]
+	if ok {
+		startKey = aws.String(startKeyString)
 	}
 
-	items, err := namespace.List(ctx, ddb, table)
+	var limit *int32
+	limitString, ok := req.QueryStringParameters["limit"]
+	if ok {
+		limitInt, err := strconv.Atoi(limitString)
+		if err != nil {
+			return create.ClientError(http.StatusBadRequest)
+		}
+		limit = aws.Int32(int32(limitInt))
+	}
+
+	in := namespace.ListNamespaceInput{
+		StartKey: startKey,
+		Limit:    limit,
+	}
+
+	out, err := namespace.List(ctx, d.ddb, d.table, in)
 
 	if err != nil {
 		return create.ServerError(err)
 	}
 
-	if items == nil {
-		return create.ClientError(http.StatusNotFound)
-	}
-
-	json, err := json.Marshal(items)
+	json, err := json.Marshal(out)
 	if err != nil {
 		return create.ServerError(err)
 	}
@@ -58,9 +73,13 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Body:       string(json),
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin": "*",
+		},
 	}, nil
 }
 
 func main() {
-	lambda.Start(handler)
+	d := deps{}
+	lambda.Start(d.handler)
 }

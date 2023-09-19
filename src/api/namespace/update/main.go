@@ -12,35 +12,40 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace"
 )
 
-var ddb dynamodb.Client
-var table string
-
-func init() {
-	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ddb = *dynamodb.NewFromConfig(sdkConfig)
-	table = os.Getenv("table_name")
+type deps struct {
+	ddb   ddb.DynamoUpdateItemAPI
+	table string
 }
 
-func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if d.ddb == nil {
+		sdkConfig, err := config.LoadDefaultConfig(context.TODO())
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		table := os.Getenv("TABLE_NAME")
+
+		d.ddb = dynamodb.NewFromConfig(sdkConfig)
+		d.table = table
+	}
+
 	name, ok := req.PathParameters["namespace"]
 	if !ok {
 		return create.ClientError(http.StatusBadRequest)
 	}
 
-	var namespace odm.Namespace
+	in := &namespace.UpdateNamespaceInput{}
+	in.Pk = namespace.Pk
+	in.Sk = name
+	json.Unmarshal([]byte(req.Body), in)
 
-	json.Unmarshal([]byte(req.Body), &namespace)
-
-	namespace.Name = name
-
-	item, err := namespace.Update(ctx, ddb, table)
+	item, err := namespace.Update(ctx, d.ddb, d.table, in)
 
 	if err != nil {
 		return create.ServerError(err)
@@ -59,5 +64,6 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 }
 
 func main() {
-	lambda.Start(handler)
+	d := deps{}
+	lambda.Start(d.handler)
 }
