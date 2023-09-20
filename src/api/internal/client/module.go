@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module"
 )
 
-func (c *Client) CreateModule(item odm.Module) (*odm.Module, error) {
+func (c *Client) CreateModule(item module.Module) (*module.Module, error) {
 	rb, err := json.Marshal(item)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func (c *Client) CreateModule(item odm.Module) (*odm.Module, error) {
 		return nil, err
 	}
 
-	module := new(odm.Module)
+	module := new(module.Module)
 	err = json.Unmarshal(body, &module)
 
 	if err != nil {
