@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -12,11 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/version"
 )
 
 type deps struct {
-	ddb   ddb.DynamoDeleteItemAPI
+	ddb   ddb.DynamoGetItemAPI
 	table string
 }
 
@@ -49,20 +50,36 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 		return create.ClientError(http.StatusBadRequest)
 	}
 
-	in := &module.DeleteModuleInput{
-		Pk: module.FlattenPartitionKey(namespace),
-		Sk: module.FlattenSortKey(namespace, provider, name),
+	ver, ok := req.PathParameters["version"]
+	if !ok {
+		return create.ClientError(http.StatusBadRequest)
 	}
 
-	err := module.Delete(ctx, d.ddb, d.table, in)
+	module := version.FlattenModule(namespace, name, provider)
+	in := &version.GetModuleVersionInput{
+		Pk: version.FlattenPartitionKey(module),
+		Sk: version.FlattenSortKey(module, ver),
+	}
+
+	item, err := version.Read(ctx, d.ddb, d.table, in)
 
 	if err != nil {
 		return create.ServerError(err)
 	}
 
+	if item == nil {
+		return create.ClientError(http.StatusNotFound)
+	}
+
+	json, err := json.Marshal(item)
+	if err != nil {
+		return create.ServerError(err)
+	}
+	log.Printf("Successfully fetched item %s", json)
+
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusNoContent,
-		Body:       "",
+		StatusCode: http.StatusOK,
+		Body:       string(json),
 	}, nil
 }
 

@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/odm"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/namespace"
 )
 
@@ -41,7 +40,7 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 	}
 
 	in := namespace.DeleteNamespaceInput{
-		Pk: odm.DynamoDbType,
+		Pk: namespace.Pk,
 		Sk: name,
 	}
 

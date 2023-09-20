@@ -1,35 +1,33 @@
-package odm
+package module
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
 )
 
-func (m *Module) Update(ctx context.Context, ddb dynamodb.Client, table string) (*Module, error) {
-	err := ValidateRequiredFields(m)
+type UpdateModuleInput struct {
+	Pk          string  `json:"pk" dynamodbav:"pk"`
+	Sk          string  `json:"sk" dynamodbav:"sk"`
+	Description *string `json:"description" dynamodbav:"description"`
+	Source      *string `json:"source" dynamodbav:"source"`
+	Verified    *bool   `json:"verified" dynamodbav:"verified"`
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	if m.Description == "" && m.Source == "" {
-		return nil, errors.New("updating a module requires an updated description or source")
-	}
-
-	key, err := m.ExpandPartitionKeyAndSortKey()
+func Update(ctx context.Context, ddbClient ddb.DynamoUpdateItemAPI, table string, m *UpdateModuleInput) (*Module, error) {
+	key, err := ExpandPartitionKeyAndSortKey(m.Pk, m.Sk)
 
 	if err != nil {
 		return nil, err
 	}
 
 	update := expression.Set(expression.Name("description"), expression.Value(m.Description)).
-		Set(expression.Name("source"), expression.Value(m.Source))
+		Set(expression.Name("source"), expression.Value(m.Source)).Set(expression.Name("verified"), expression.Value(m.Verified))
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 
@@ -43,10 +41,10 @@ func (m *Module) Update(ctx context.Context, ddb dynamodb.Client, table string) 
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
-		ReturnValues:              types.ReturnValueUpdatedNew,
+		ReturnValues:              types.ReturnValueAllNew,
 	}
 
-	res, err := ddb.UpdateItem(ctx, in)
+	res, err := ddbClient.UpdateItem(ctx, in)
 
 	if err != nil {
 		return nil, err
@@ -59,5 +57,5 @@ func (m *Module) Update(ctx context.Context, ddb dynamodb.Client, table string) 
 		return nil, err
 	}
 
-	return m, nil
+	return item, nil
 }

@@ -12,12 +12,12 @@ import (
 )
 
 type CreateNamespaceInput struct {
-	Id          string `json:"id" dynamodbav:"id"`
-	Pk          string `json:"pk" dynamodbav:"pk"`
-	Sk          string `json:"sk" dynamodbav:"sk"`
-	Description string `json:"description" dynamodbav:"description"`
-	Email       string `json:"email" dynamodbav:"email"`
-	Name        string `json:"name" dynamodbav:"name"`
+	Id          string  `json:"id" dynamodbav:"id"`
+	Pk          string  `json:"pk" dynamodbav:"pk"`
+	Sk          string  `json:"sk" dynamodbav:"sk"`
+	Description *string `json:"description" dynamodbav:"description"`
+	Email       *string `json:"email" dynamodbav:"email"`
+	Name        string  `json:"name" dynamodbav:"name"`
 }
 
 func Create(ctx context.Context, ddbClient ddb.DynamoPutItemAPI, table string, m *CreateNamespaceInput) (*Namespace, error) {
@@ -47,17 +47,17 @@ func Create(ctx context.Context, ddbClient ddb.DynamoPutItemAPI, table string, m
 		ExpressionAttributeNames:  expr.Names(),
 	}
 
-	res, err := ddbClient.PutItem(ctx, in)
+	_, err = ddbClient.PutItem(ctx, in)
 
 	if err != nil {
 		return nil, err
 	}
 
-	out := &Namespace{}
-	err = attributevalue.UnmarshalMap(res.Attributes, out)
-
-	if err != nil {
-		return nil, err
+	out := &Namespace{
+		Id:          m.Id,
+		Description: m.Description,
+		Email:       m.Email,
+		Name:        m.Name,
 	}
 
 	return out, nil

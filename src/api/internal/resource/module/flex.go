@@ -1,4 +1,4 @@
-package odm
+package module
 
 import (
 	"fmt"
@@ -15,10 +15,14 @@ func FlattenSortKey(namespace string, provider string, name string) string {
 	return fmt.Sprintf("%s/%s/%s", namespace, provider, name)
 }
 
-func (m *Module) ExpandPartitionKeyAndSortKey() (map[string]types.AttributeValue, error) {
+func FlattenPartitionKey(namespace string) string {
+	return namespace + "/" + Pk
+}
+
+func ExpandPartitionKeyAndSortKey(pk, sk string) (map[string]types.AttributeValue, error) {
 	moduleKey := ModuleKey{
-		SortKey:      FlattenSortKey(m.Namespace, m.Provider, m.Name),
-		ResourceType: DynamoDbType,
+		Pk: pk,
+		Sk: sk,
 	}
 
 	key, err := attributevalue.MarshalMap(moduleKey)
@@ -30,10 +34,13 @@ func (m *Module) ExpandPartitionKeyAndSortKey() (map[string]types.AttributeValue
 	return key, nil
 }
 
-func (m *Module) FlattenQuerySortKey() string {
-	sortKey := m.Namespace + "/"
-	if m.Provider != "" {
-		sortKey = sortKey + m.Provider + "/"
+func FlattenQuerySortKey(namespace, provider, name string) string {
+	sortKey := namespace + "/"
+	if provider != "" {
+		sortKey = sortKey + provider + "/"
+	}
+	if name != "" && provider != "" {
+		sortKey = sortKey + name
 	}
 
 	return sortKey

@@ -2,7 +2,7 @@ GO_VER ?= go
 SRCDIR ?= src/api
 GOOS ?= linux
 GOARCH ?= arm64
-TYPE ?= namespace
+TYPE ?= namespace module moduleVersion
 
 default: build
 

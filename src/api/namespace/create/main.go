@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -44,7 +45,7 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 	item, err := namespace.Create(ctx, d.ddb, d.table, in)
 
 	if validate.ConditionalCheckFailedException(err) {
-		return create.ServerErrorConflict(err)
+		return create.ServerErrorConflict(errors.New("a namespace with this name already exists."))
 	}
 
 	if err != nil {

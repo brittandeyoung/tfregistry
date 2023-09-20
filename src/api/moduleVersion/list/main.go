@@ -2,21 +2,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/create"
 	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
-	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/module/version"
 )
 
 type deps struct {
-	ddb   ddb.DynamoDeleteItemAPI
+	ddb   ddb.DynamoQueryAPI
 	table string
 }
 
@@ -49,20 +52,45 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 		return create.ClientError(http.StatusBadRequest)
 	}
 
-	in := &module.DeleteModuleInput{
-		Pk: module.FlattenPartitionKey(namespace),
-		Sk: module.FlattenSortKey(namespace, provider, name),
+	var startKey *string
+	startKeyString, ok := req.QueryStringParameters["start_key"]
+	if ok {
+		startKey = aws.String(startKeyString)
 	}
 
-	err := module.Delete(ctx, d.ddb, d.table, in)
+	var limit *int32
+	limitString, ok := req.QueryStringParameters["limit"]
+	if ok {
+		limitInt, err := strconv.Atoi(limitString)
+		if err != nil {
+			return create.ClientError(http.StatusBadRequest)
+		}
+		limit = aws.Int32(int32(limitInt))
+	}
+
+	in := &version.ListModuleVersionInput{
+		Namespace: namespace,
+		Provider:  provider,
+		Name:      name,
+		StartKey:  startKey,
+		Limit:     limit,
+	}
+
+	out, err := version.List(ctx, d.ddb, d.table, in)
+
+	if err != nil {
+		return create.ServerError(err)
+	}
+
+	json, err := json.Marshal(out)
 
 	if err != nil {
 		return create.ServerError(err)
 	}
 
 	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusNoContent,
-		Body:       "",
+		StatusCode: http.StatusOK,
+		Body:       string(json),
 	}, nil
 }
 

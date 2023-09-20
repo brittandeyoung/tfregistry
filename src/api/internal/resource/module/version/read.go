@@ -1,4 +1,4 @@
-package odm
+package version
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/brittandeyoung/tfregistry/src/api/internal/resource/common/ddb"
 )
 
-func (m *Module) Read(ctx context.Context, ddb dynamodb.Client, table string) (*Module, error) {
-	err := ValidateRequiredFields(m)
+type GetModuleVersionInput struct {
+	Pk string `json:"pk" dynamodbav:"pk"`
+	Sk string `json:"sk" dynamodbav:"sk"`
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := m.ExpandPartitionKeyAndSortKey()
+func Read(ctx context.Context, ddbClient ddb.DynamoGetItemAPI, table string, m *GetModuleVersionInput) (*ModuleVersion, error) {
+	key, err := attributevalue.MarshalMap(m)
 
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (m *Module) Read(ctx context.Context, ddb dynamodb.Client, table string) (*
 		Key:       key,
 	}
 
-	result, err := ddb.GetItem(ctx, in)
+	result, err := ddbClient.GetItem(ctx, in)
 
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (m *Module) Read(ctx context.Context, ddb dynamodb.Client, table string) (*
 		return nil, nil
 	}
 
-	item := new(Module)
+	item := new(ModuleVersion)
 	err = attributevalue.UnmarshalMap(result.Item, item)
 
 	if err != nil {
