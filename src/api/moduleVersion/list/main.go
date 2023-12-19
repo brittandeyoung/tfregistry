@@ -19,8 +19,9 @@ import (
 )
 
 type deps struct {
-	ddb   ddb.DynamoQueryAPI
-	table string
+	ddb                        ddb.DynamoQueryAPI
+	table                      string
+	AccessControlAllowedHeader string
 }
 
 func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -35,6 +36,10 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 
 		d.ddb = dynamodb.NewFromConfig(sdkConfig)
 		d.table = table
+	}
+
+	if d.AccessControlAllowedHeader == "" {
+		d.AccessControlAllowedHeader = os.Getenv("ACCESS_CONTROL_ALLOWED_HEADER")
 	}
 
 	namespace, ok := req.PathParameters["namespace"]
@@ -91,6 +96,9 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 		Body:       string(json),
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin": d.AccessControlAllowedHeader,
+		},
 	}, nil
 }
 

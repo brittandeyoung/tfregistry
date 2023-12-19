@@ -56,7 +56,7 @@ func (d *deps) handler(ctx context.Context, req events.APIGatewayProxyRequest) (
 	in := &version.CreateModuleVersionInput{}
 	json.Unmarshal([]byte(req.Body), in)
 
-	if !semver.IsValid(in.Version) {
+	if !semver.IsValid("v" + in.Version) {
 		return create.ClientError(http.StatusBadRequest)
 	}
 
