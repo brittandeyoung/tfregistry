@@ -12,7 +12,8 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.this.name
+      TABLE_NAME                    = aws_dynamodb_table.this.name
+      ACCESS_CONTROL_ALLOWED_HEADER = "http://localhost:3000" # temporary to allow local development
     }
   }
 }
