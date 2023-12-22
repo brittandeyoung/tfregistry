@@ -61,9 +61,8 @@ const ModuleList = () => {
                                    href="{% url 'module_update' organization=organization name=module.name provider=module.provider %}">Update</a> */}
                                 </h4>
                                 <div className="meta">
-                                    {object.downloads} <i className="download icon"></i> <a>
-                                        {object.description}
-                                    </a>
+                                    {object.downloads} <i className="download icon"></i>
+                                    <span>{object.description}</span>
                                 </div>
                             </div>
                         ))}
