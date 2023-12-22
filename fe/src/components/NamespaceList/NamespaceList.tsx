@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Paginator from '../Paginator/Paginator'
 import { NamespaceListWrapper } from './NamespaceList.styled';
 
@@ -7,14 +7,25 @@ type Namespace = {
    description: string;
 }
 
-type NamespacesResponse = {
-   Meta: {next_url: string}
+type NamespacesProp = {
+   Meta: { next_url: string }
    Namespaces: Namespace[]
 }
 
-
 const NamespaceList = () => {
-   const [namespaces, setNamespaces] = useState<NamespacesResponse>({Meta: {next_url:""}, Namespaces: []});
+   const [namespaces, setNamespaces] = useState<NamespacesProp>({ Meta: { next_url: "" }, Namespaces: [] });
+
+   useEffect(() => {
+      fetch(process.env.REACT_APP_API_URL_BASE + "/namespaces")
+         .then((response) => response.json())
+         .then((data) => {
+            console.log(data);
+            setNamespaces(data);
+         })
+         .catch((err) => {
+            console.log(err.message);
+         });
+   }, []);
 
    return (<NamespaceListWrapper data-testid="NamespaceList">
       <div className="ui left aligned basic padded segment">

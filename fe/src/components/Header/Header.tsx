@@ -1,10 +1,8 @@
-import React, { FC, useState } from 'react';
+import React from 'react';
 import logo from '../../static/logo.png';
 import { HeaderWrapper } from './Header.styled';
 
-interface HeaderProps { }
-
-const Header: FC<HeaderProps> = () => (
+const Header = () => (
    <HeaderWrapper data-testid="Header">
       <header>
          <div className="ui fixed borderless huge menu">
