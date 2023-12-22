@@ -5,7 +5,7 @@ import Paginator from './Paginator';
 
 describe('<Paginator />', () => {
   test('it should mount', () => {
-    render(<Paginator />);
+    render(<Paginator next_url="https://localhost" />);
     
     const paginator = screen.getByTestId('Paginator');
 

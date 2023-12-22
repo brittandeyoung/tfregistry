@@ -16,7 +16,6 @@ const Paginator = ({ next_url }: PaginatorProps) => {
                   </div>
                </div>
             </div>
-
          </PaginatorWrapper>
       );
    } else {
