@@ -48,4 +48,13 @@ clean:
 	tfyodo \
 	deploy \
 	set-file-time \
+	feci \
 	clean
+
+feci:
+	export CI=true; \
+	cd fe ; \
+	npm ci ; \
+	npm run build --if-present ; \
+	npm test
+
