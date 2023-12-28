@@ -41,6 +41,13 @@ set-file-time:
 clean:
 	rm -rf ./iac/build ./build
 
+feci:
+	export CI=true; \
+	cd fe ; \
+	npm ci ; \
+	npm run build --if-present ; \
+	npm test
+
 .PHONY: \
 	build \
 	zip \
@@ -48,4 +55,7 @@ clean:
 	tfyodo \
 	deploy \
 	set-file-time \
+	feci \
 	clean
+
+
