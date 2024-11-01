@@ -13,6 +13,10 @@
   }
 }
 
+.App > .ui.container {
+  margin-top: 6em;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
