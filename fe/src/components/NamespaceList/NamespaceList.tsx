@@ -1,31 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import Paginator from '../Paginator/Paginator'
+import { useState, useEffect } from 'react';
 import { NamespaceListWrapper } from './NamespaceList.styled';
+import { useSearchParams } from "react-router-dom";
 
 type Namespace = {
    name: string;
    description: string;
 }
 
-type NamespacesProp = {
-   Meta: { next_url: string }
-   Namespaces: Namespace[]
-}
-
 const NamespaceList = () => {
-   const [namespaces, setNamespaces] = useState<NamespacesProp>({ Meta: { next_url: "" }, Namespaces: [] });
+   const [searchParams] = useSearchParams();
+
+   const limit = searchParams.get('limit') || '10'; 
+   const [items, setItems] = useState<Namespace[]>([]);
+   const [page, setPage] = useState(1);
+   const [startKey, setStartKey] = useState("")
+
+   async function fetchMoreData(limit: string, startKey: string) {
+      const response = await fetch(process.env.REACT_APP_API_URL_BASE + "/api/namespaces?limit=" + limit + (startKey ? "&start_key=" + startKey : ""));
+      const newData = await response.json();
+      return newData;
+    }
+
+   const fetchData = async () => {
+      const newData = await fetchMoreData(limit, startKey);
+      const lek = newData.Meta.last_evaluated_key
+      setPage(page + 1);
+      setStartKey(lek)
+      setItems([...items, ...newData.Namespaces]);
+   };
 
    useEffect(() => {
-      fetch(process.env.REACT_APP_API_URL_BASE + "/namespaces")
-         .then((response) => response.json())
-         .then((data) => {
-            console.log(data);
-            setNamespaces(data);
-         })
-         .catch((err) => {
-            console.log(err.message);
-         });
-   }, []);
+      fetchData(); // Fetch initial data on component mount
+    }, []);
 
    return (<NamespaceListWrapper data-testid="NamespaceList">
       <div className="ui left aligned basic padded segment">
@@ -48,20 +54,25 @@ const NamespaceList = () => {
                   </div>
                   <div className="ui divider"></div>
                   <div className="ui cards">
-                     {namespaces.Namespaces?.map((object, i) => (
-                        <div className="card" key={i}>
+                  {items.map(item => ( (
+                        <div className="card" key={item.name}>
                            <div className="content">
                               <div className="header">
-                                 <a href={object.name}>{object.name}</a>
+                                 <a href={item.name}>{item.name}</a>
                               </div>
-                              <div className="description">{object.description}</div>
+                              <div className="description">{item.description}</div>
                            </div>
-                        </div>))}
+                        </div>)))}
                   </div>
                </div>
             </div>
          </div>
-         <Paginator next_url={namespaces.Meta?.next_url} />
+         <div className="ui footer segment">
+            {startKey === null && "All caught up!" }
+            {startKey !== null && <button className="fluid ui button" onClick={fetchData}>
+               Load More..
+            </button>}
+         </div>
       </div>
    </NamespaceListWrapper>);
 };

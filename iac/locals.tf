@@ -1,5 +1,6 @@
 locals {
-  project_name = "terraformRegistry"
+  project_name = "opentacos"
+  name         = var.pr_id == "none" ? local.project_name : format("%s-%s", local.project_name, var.pr_id)
 
   api_action = {
     namespace_create = {

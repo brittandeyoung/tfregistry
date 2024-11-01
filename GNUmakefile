@@ -41,6 +41,9 @@ set-file-time:
 clean:
 	rm -rf ./iac/build ./build
 
+fe-build:
+	cd fe; npm install; npm run build --profile; cd ../
+
 feci:
 	export CI=true; \
 	cd fe ; \
@@ -55,7 +58,8 @@ feci:
 	tfyodo \
 	deploy \
 	set-file-time \
-	feci \
+	fe-build \
+	fe-ci \
 	clean
 
 

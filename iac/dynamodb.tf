@@ -19,4 +19,15 @@ resource "aws_dynamodb_table" "this" {
     name = "sk"
     type = "S"
   }
+
+  attribute {
+    name = "lsi"
+    type = "S"
+  }
+
+  local_secondary_index {
+    name            = "reverse-sort-key"
+    projection_type = "ALL"
+    range_key       = "lsi"
+  }
 }

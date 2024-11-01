@@ -22,7 +22,7 @@ type CreateNamespaceInput struct {
 
 func Create(ctx context.Context, ddbClient ddb.DynamoPutItemAPI, table string, m *CreateNamespaceInput) (*Namespace, error) {
 	if m.Name == "" {
-		return nil, errors.New("module is missing one of the required fields (Namespace, Provider, or Name)")
+		return nil, errors.New("namespace is missing one of the required fields (Name)")
 	}
 
 	m.Id = m.Name
