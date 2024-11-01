@@ -31,7 +31,7 @@ const NamespaceList = () => {
 
    useEffect(() => {
       fetchData(); // Fetch initial data on component mount
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
    return (<NamespaceListWrapper data-testid="NamespaceList">
       <div className="ui left aligned basic padded segment">
